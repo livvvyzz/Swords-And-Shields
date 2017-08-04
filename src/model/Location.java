@@ -28,7 +28,7 @@ public class Location {
 		}
 		
 		//throws exception if they are outside the board
-		if(isOnBoard){
+		if(!isOnBoard){
 			throw new GameError("Attempting to move token to location that is not on the board");
 		}
 	}

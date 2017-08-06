@@ -19,7 +19,7 @@ public class Player {
 	 * @param name
 	 */
 	public Player(String name){
-		if(!name.equals("green") || !name.equals("yellow")) throw new GameError("Attempting to make player with "
+		if(!name.equals("green") && !name.equals("yellow")) throw new GameError("Attempting to make player with "
 				+ "wrong name");
 		this.name = name;
 		initPlayerMap();

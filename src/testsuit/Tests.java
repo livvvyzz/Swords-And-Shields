@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import model.Board;
 import model.Location;
+import model.PlayerMap;
 import model.Token;
 
 public class Tests {

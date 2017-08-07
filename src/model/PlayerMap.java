@@ -29,6 +29,19 @@ public class PlayerMap {
 		initTokens(upper);
 	}
 	
+	public Token[][] getTokensArray(){
+		
+		Token[][] t = new Token[5][5];
+		int count = 0;
+		for(int i = 0; i < 5; i++){
+			for(int j = 0; j< 5; j++){
+				if(count == 24) break;
+				t[i][j] = tokens.get(0);
+				count++;
+			}
+		}
+		return t;
+	}
 	/**
 	 * Hard codes all 24 tokens bc that what marco said to do
 	 */

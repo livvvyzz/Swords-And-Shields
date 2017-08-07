@@ -1,11 +1,15 @@
 package view;
 
 import model.Board;
+import model.PlayerMap;
+import model.State;
 import model.Token;
 
 public class BoardView {
 
 	private Board board;
+	private PlayerMap yellow;
+	private PlayerMap green;
 
 	private int BOARD_SIZE = 40;
 
@@ -14,8 +18,10 @@ public class BoardView {
 	 * 
 	 * @param board
 	 */
-	public BoardView(Board board) {
+	public BoardView(Board board, PlayerMap y, PlayerMap g) {
 		this.board = board;
+		this.green = g;
+		this.yellow = y;
 	}
 
 	/**
@@ -33,7 +39,7 @@ public class BoardView {
 
 		// top boarder
 		System.out.println("");
-		System.out.println("-----------------------------------------");
+		System.out.println("-----------------------------------------          Yellows Tokens");
 
 		// rows of the board
 		for (int row = 0; row < b.length; row++) {
@@ -63,10 +69,44 @@ public class BoardView {
 					}
 					line.append("|");
 				}
+				line.append("          ");
+				// display pieces that are not on board
+				Token[][] t = new Token[5][5];
+				if (row < 5)
+					t = yellow.getTokensArray();
+				else
+					t = green.getTokensArray();
+
+				int newRow = row;
+				if (row >= 5) {
+					newRow = row - 5;
+				}
+				for (int col = 0; col < yellow.getTokensArray().length; col++) {
+					if (t[newRow][col] != null) {
+						Token token = t[newRow][col];
+						if (token.getState().equals(State.INACTIVE)) {
+							// check if there is a char in that spot
+							Character[][] code = token.getCode();
+							for (int r = 0; r < 3; r++) {
+								if (code[level][r] == null) {
+									line.append(" ");
+								} else {
+									line.append(code[level][r]);
+								}
+							}
+						}
+					} else {
+						line.append(" ");
+					}
+				}
+
 				System.out.println(line);
 
 			}
-			System.out.println("-----------------------------------------");
+			if (row == 4)
+				System.out.println("-----------------------------------------          Green Tokens");
+			else
+				System.out.println("-----------------------------------------");
 		}
 
 	}

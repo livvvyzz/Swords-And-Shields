@@ -67,6 +67,6 @@ public class Board extends java.util.Observable {
 	 * @return
 	 */
 	public Token[][] getBoard() {
-		return board;
+		return board; 
 	}
 }

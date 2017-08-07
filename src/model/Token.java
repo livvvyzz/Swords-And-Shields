@@ -19,7 +19,7 @@ public class Token {
 	 * Creates the token
 	 * @param name	letter used to represent the token (A-X)
 	 * @param code
-	 * @param isUpper
+	 * @param isUpper 
 	 */
 	public Token(Character name, String code, boolean isUpper){
 		state = State.INACTIVE;

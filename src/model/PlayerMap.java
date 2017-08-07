@@ -16,7 +16,7 @@ import java.util.Set;
 public class PlayerMap {
 
 	// map that holds tokens, using their name as the key
-	private Map<Character, Token> tokens;
+	private Map<Character, Token> tokens; 
 
 	/**
 	 * Creates map and tokens
@@ -28,7 +28,7 @@ public class PlayerMap {
 		// create all 24 tokens
 		initTokens(upper);
 	}
-
+	
 	/**
 	 * Hard codes all 24 tokens bc that what marco said to do
 	 */

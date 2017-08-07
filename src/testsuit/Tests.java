@@ -11,9 +11,10 @@ import model.Location;
 import model.Player;
 import model.PlayerMap;
 import model.Token;
+import view.BoardView;
 
 public class Tests {
-
+//-----------------------------------MODEL TESTS----------------------------------------------------------------
 	/**
 	 * ---------------------------//BOARD TESTS //------------------------------
 	 */
@@ -97,6 +98,17 @@ public class Tests {
 		assertEquals(4, l.getLocation().getY());
 
 	}
+
+
+//-----------------------------------VIEW TESTS----------------------------------------------------------------
+	/**
+	 * ---------------------------//BOARDVIEW TESTS //------------------------------
+	 */
+
+	@Test
+	public void testDrawBoard(){
+		Board b = new Board();
+		BoardView view = new BoardView(b);
+		view.drawBoard();
+	}
 }
-
-

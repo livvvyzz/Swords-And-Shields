@@ -4,6 +4,8 @@ import java.util.Scanner;
 
 import model.Board;
 import model.Player;
+import model.State;
+import model.Token;
 import view.BoardView;
 
 public class Controller {
@@ -33,7 +35,7 @@ public class Controller {
 		current = yellow;
 		
 		//create parser
-		parser = new Parser();
+		parser = new Parser(this);
 		//create model board
 		board = new Board();
 		//create board view
@@ -43,7 +45,7 @@ public class Controller {
 		frame.drawBoard();
 		//start the game
 		startGame();
-	}
+	} 
 	
 	/**
 	 * Starts the game by asking yellow to create token
@@ -55,5 +57,18 @@ public class Controller {
 		parser.ParseExpressions(input);
 	}
 	
+	/**
+	 * Receives info from parse class and create a token for current player depending on char
+	 * @param c		name of token to be created
+	 */
+	public void create(char c){
+		Token token = current.getPlayerMap().getMap().get(c);
+		//check if already on board
+		if(token.getState().equals(State.ALIVE)){
+			frame.getOutput(">>>Token already on Board! Cannot be created. Please try again");
+		}
+		//else put token on board
+		
+	}
 	 
 }

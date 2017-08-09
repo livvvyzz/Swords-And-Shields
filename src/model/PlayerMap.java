@@ -86,11 +86,13 @@ public class PlayerMap {
 		//delete all dupes from the set
 		for(String d : dupes){
 			permutation.remove(d);
-		}
+		} 
 		
 		//creates all tokens
 		for(int i = 0; i < 24; i++){
 			char c = (char)(i + 97);
+			//make uppercase if green
+			if(upper) c = Character.toUpperCase(c);
 			tokens.put(c, new Token(c,c+permutation.get(i), upper));
 		}
 		/**

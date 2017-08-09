@@ -122,7 +122,7 @@ public class BoardView {
 	/**
 	 * Receives output from controller to be pritned
 	 * @param output 	text to be sent to the console
-	 */
+	 */ 
 	public String getOutput(String output){
 		Scanner input = new Scanner(System.in);
 

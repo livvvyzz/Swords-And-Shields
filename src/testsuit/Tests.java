@@ -87,6 +87,12 @@ public class Tests {
 		assertEquals(p.getName(), "yellow");
 	}
 	
+	@Test
+	public void testInitMap(){
+		PlayerMap p = new PlayerMap(false);
+		assertEquals(p.getMap().size(), 24);
+	}
+	
 	/**
 	 * ---------------------------//LOCATION TESTS //------------------------------
 	 */
@@ -108,7 +114,7 @@ public class Tests {
 	@Test
 	public void testDrawBoard(){
 		Board b = new Board();
-		BoardView view = new BoardView(b);
+		BoardView view = new BoardView(b, new PlayerMap(false), new PlayerMap(true));
 		view.drawBoard();
 	}
 }

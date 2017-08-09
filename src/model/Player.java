@@ -45,6 +45,15 @@ public class Player {
 	public String getName(){
 		return this.name;
 	}
+	
+	/**
+	 * Returns the playerMap
+	 * @return 	tokenSet
+	 */
+	public PlayerMap getPlayerMap(){
+		return this.tokenSet;
+	}
+	
 
 	
 	

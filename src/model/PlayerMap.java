@@ -33,10 +33,11 @@ public class PlayerMap {
 		
 		Token[][] t = new Token[5][5];
 		int count = 0;
-		for(int i = 0; i < 5; i++){
-			for(int j = 0; j< 5; j++){
+		for(int i = 0; i < t.length; i++){
+			for(int j = 0; j< t[i].length; j++){
 				if(count == 24) break;
-				t[i][j] = tokens.get(0);
+				char c = (char)(count + 97);
+				t[i][j] = tokens.get(c);
 				count++;
 			}
 		}
@@ -118,6 +119,10 @@ public class PlayerMap {
 		 * Token(c,c+"-###",upper)); tokens.put(c = 'x', new
 		 * Token(c,c+".###",upper));
 		 */
+	}
+	
+	public Map<Character, Token> getMap(){
+		return this.tokens;
 	}
 
 }

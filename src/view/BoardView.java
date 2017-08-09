@@ -1,5 +1,7 @@
 package view;
 
+import java.util.Scanner;
+
 import model.Board;
 import model.PlayerMap;
 import model.State;
@@ -69,9 +71,9 @@ public class BoardView {
 					}
 					line.append("|");
 				}
-				line.append("          ");
+				line.append("      ");
 				// display pieces that are not on board
-				Token[][] t = new Token[5][5];
+				Token[][] t = yellow.getTokensArray();
 				if (row < 5)
 					t = yellow.getTokensArray();
 				else
@@ -80,20 +82,26 @@ public class BoardView {
 				int newRow = row;
 				if (row >= 5) {
 					newRow = row - 5;
-				}
-				for (int col = 0; col < yellow.getTokensArray().length; col++) {
+				} 
+				for (int col = 0; col < t.length; col++) {
 					if (t[newRow][col] != null) {
 						Token token = t[newRow][col];
 						if (token.getState().equals(State.INACTIVE)) {
+							
 							// check if there is a char in that spot
 							Character[][] code = token.getCode();
-							for (int r = 0; r < 3; r++) {
-								if (code[level][r] == null) {
+							for (int j = 0; j < 3; j++) {
+								if (code[level][j] == null) {
 									line.append(" ");
 								} else {
-									line.append(code[level][r]);
+									if (code[level][j].equals('.')) {
+										line.append(" ");
+									} else {
+										line.append(code[level][j]);
+									}
 								}
 							}
+							line.append("  ");
 						}
 					} else {
 						line.append(" ");
@@ -109,5 +117,17 @@ public class BoardView {
 				System.out.println("-----------------------------------------");
 		}
 
+	}
+	
+	/**
+	 * Receives output from controller to be pritned
+	 * @param output 	text to be sent to the console
+	 */
+	public String getOutput(String output){
+		Scanner input = new Scanner(System.in);
+
+		System.out.println(output);
+		String s = input.next(); // getting a String value
+		return s;
 	}
 }

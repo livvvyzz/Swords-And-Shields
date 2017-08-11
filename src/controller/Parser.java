@@ -47,6 +47,19 @@ public class Parser {
 	}
 
 	/**
+	 * Check if the users input is Pass, if so dont parse the expression
+	 * @param input
+	 * @return 		true if is pass
+	 */
+	public boolean checkPass(String input){
+		Scanner s = new Scanner(input);
+		String cmd = s.next();
+		if (expr.contains(cmd)) {
+			if(cmd.equals("pass")) return true;
+		}
+		return false;
+	}
+	/**
 	 * Analyses create command
 	 */
 	public void ParseCreate(Scanner s) {

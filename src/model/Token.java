@@ -15,7 +15,7 @@ public class Token {
 	//check what state the token is in (dead, alive or inactive if not yet been created by player)
 	private State state;
 	
-	/**
+	/** 
 	 * Creates the token
 	 * @param name	letter used to represent the token (A-X)
 	 * @param code
@@ -89,6 +89,14 @@ public class Token {
 	 */
 	public State getState(){
 		return this.state;
+	}
+	
+	/**
+	 * Changes the tokens state
+	 * @param s		new state
+	 */
+	public void setState(State s){
+		this.state = s;
 	}
 	
 }

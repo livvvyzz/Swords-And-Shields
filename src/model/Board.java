@@ -28,10 +28,18 @@ public class Board extends java.util.Observable {
 	 */
 	public void addToken(Token token) {
 		Location loc = token.getLocation();
+
+		//check that no piece is on this spot already
+		if(board[loc.getX()][loc.getY()] != null){
+			throw new GameError("Attempting to place token in used spot");
+		}
+		
 		board[loc.getX()][loc.getY()] = token;
 
+		//change token state
+		token.setState(State.ALIVE);
 		// notifies view that it needs to redraw the board
-		notifyObservers();
+		notifyObservers(); 
 	}
 
 	/**

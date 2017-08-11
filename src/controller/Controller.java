@@ -68,7 +68,30 @@ public class Controller {
 			frame.getOutput(">>>Token already on Board! Cannot be created. Please try again");
 		}
 		//else put token on board
+		board.addToken(token);
+	}
+	
+	/**
+	 * Controls each turn the player has
+	 */
+	public void round(){
+
+		String output = (current.getName().toUpperCase() + "'S TURN");
+		//receive input/cmd
+		String input = frame.getOutput(output);
 		
+		//check if cmd is pass
+		while(!parser.checkPass(input)){
+			parser.ParseExpressions(input);
+		}
+		if(current.equals(green)) current = yellow;
+		else if (current.equals(yellow)) current = green;
+		round();
+
+		//move - move token
+		//check if an interation happens
+		//if pass change turn
+		//else keep going
 	}
 	 
 }

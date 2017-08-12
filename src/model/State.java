@@ -8,5 +8,5 @@ package model;
  *
  */
 public enum State {
-	DEAD, ALIVE, INACTIVE
+	DEAD, ALIVE, INACTIVE, INVALID
 }

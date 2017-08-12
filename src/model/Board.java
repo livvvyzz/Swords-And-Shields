@@ -35,11 +35,13 @@ public class Board extends java.util.Observable {
 		}
 		
 		board[loc.getX()][loc.getY()] = token;
+		
+		//check for reaction
 
 		//change token state
-		token.setState(State.ALIVE);
+		//token.setState(State.ALIVE);
 		// notifies view that it needs to redraw the board
-		notifyObservers(); 
+		//notifyObservers(); 
 	}
 
 	/**

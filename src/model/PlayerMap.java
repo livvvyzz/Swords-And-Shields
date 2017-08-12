@@ -15,6 +15,7 @@ import java.util.Set;
  */
 public class PlayerMap {
 
+	private boolean upper;
 	// map that holds tokens, using their name as the key
 	private Map<Character, Token> tokens; 
 
@@ -25,6 +26,7 @@ public class PlayerMap {
 	 */
 	public PlayerMap(boolean upper) {
 		tokens = new HashMap<Character, Token>();
+		this.upper = upper;
 		// create all 24 tokens
 		initTokens(upper);
 	}
@@ -91,9 +93,9 @@ public class PlayerMap {
 		//creates all tokens
 		for(int i = 0; i < 24; i++){
 			char c = (char)(i + 97);
-			//make uppercase if green
-			if(upper) c = Character.toUpperCase(c);
-			tokens.put(c, new Token(c,c+permutation.get(i), upper));
+			char n = c;
+			if(upper) n = Character.toUpperCase(n);
+			tokens.put(c, new Token(c,n+permutation.get(i), upper));
 		}
 		/**
 		 * tokens.put(c = 'a', new Token(c,c+"-#--",upper)); tokens.put(c = 'b',

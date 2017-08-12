@@ -24,7 +24,7 @@ public class Tests {
 		Token[][] board = b.getBoard();
 		assertEquals(board.length, 10);
 	}
-	
+	 
 	@Test 
 	public void testAddToken(){
 		Board b = new Board();

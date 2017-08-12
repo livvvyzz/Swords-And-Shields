@@ -16,9 +16,14 @@ public class Location {
 	 * @param x
 	 * @param y
 	 */
-	public Location(int x, int y) {
+	public Location(int x, int y) { 
 		boolean isOnBoard = false;
 		//ensures coordinates are within the board
+		//invalid squares
+		if((x == 0 && y == 0) || (x == 0 && y == 1) || (x == 1 && y == 0) || (x == 1 && y == 1) || (x == 8 && y == 8) ||
+				(x == 9 && y == 9) || (x == 8 && y == 9) || (x == 9 && y == 8))
+			throw new GameError("Attempting to move token to location that is an invalid square");
+
 		if (x <= 9 && x >= 0) {
 			this.x = x;
 			if(y <= 9 && y >= 0){
@@ -31,6 +36,17 @@ public class Location {
 		if(!isOnBoard){
 			throw new GameError("Attempting to move token to location that is not on the board");
 		}
+	}
+	
+	/**
+	 * Only called in the makeSqaures method - lets the tokens go into the invalid sqaures 
+	 * @param x
+	 * @param y
+	 * @param invalidSqaure
+	 */
+	public Location(int x, int y, boolean invalidSqaure){
+		this.x = x;
+		this.y = y;
 	}
 	
 	/**

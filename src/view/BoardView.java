@@ -51,14 +51,14 @@ public class BoardView {
 				StringBuilder line = new StringBuilder();
 				line.append("|");
 				for (int col = 0; col < b.length; col++) {
-					if (b[row][col] == null) {
+					if (b[col][row] == null) {
 						line.append("   ");
 					} else {
-						Token t = b[row][col];
+						Token t = b[col][row];
 						Character[][] c = t.getCode();
 						// iterate through name per row
 						for (int j = 0; j < 3; j++) {
-							if (c[level][j] == null) {
+							if (c[j][level] == null) {
 								line.append(" ");
 							} else {
 								if (c[level][j].equals('.')) {
@@ -82,12 +82,12 @@ public class BoardView {
 				int newRow = row;
 				if (row >= 5) {
 					newRow = row - 5;
-				} 
+				}
 				for (int col = 0; col < t.length; col++) {
 					if (t[newRow][col] != null) {
 						Token token = t[newRow][col];
 						if (token.getState().equals(State.INACTIVE)) {
-							
+
 							// check if there is a char in that spot
 							Character[][] code = token.getCode();
 							for (int j = 0; j < 3; j++) {
@@ -118,16 +118,18 @@ public class BoardView {
 		}
 
 	}
-	
+
 	/**
 	 * Receives output from controller to be pritned
-	 * @param output 	text to be sent to the console
-	 */ 
-	public String getOutput(String output){
+	 * 
+	 * @param output
+	 *            text to be sent to the console
+	 */
+	public String getOutput(String output) {
 		Scanner input = new Scanner(System.in);
 
 		System.out.println(output);
-		String s = input.next(); // getting a String value
+		String s = input.nextLine(); // getting a String value
 		return s;
 	}
 }

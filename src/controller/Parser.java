@@ -35,15 +35,19 @@ public class Parser {
 	 * Analyses input and calls the appropriate method depending on the command
 	 * ("move", "create", "rotate", "pass"
 	 */
-	public void ParseExpressions(String input) {
+	public String ParseExpressions(String input) {
 		Scanner s = new Scanner(input);
 		String cmd = s.next();
+		String toReturn;
 		if (expr.contains(cmd)) {
-			if(cmd.equals("create")) ParseCreate(s);
-			else if (cmd.equals("rotate")) ParseRotate(s);
-			else if(cmd.equals("move")) ParseRotate(s);
-			else if(cmd.equals("pass")) ParsePass(s);
+			if(cmd.equals("create")) return toReturn ="create";
+			else if (cmd.equals("rotate")) return toReturn = "rotate";
+			else if(cmd.equals("move")) return toReturn ="move";
+			else if(cmd.equals("pass")) return toReturn ="pass";
 		}
+		
+		//if none of the above, wrong input
+		return toReturn = "null";
 	}
 
 	/**
@@ -59,35 +63,7 @@ public class Parser {
 		}
 		return false;
 	}
-	/**
-	 * Analyses create command
-	 */
-	public void ParseCreate(Scanner s) {
-		//get the leter to be create
-		s.useDelimiter("<");
-		char c = s.next().toCharArray()[0];
-		
-		//init token for player
-		cont.create(c);
-	}
-
-	/**
-	 * Analyses rotate command
-	 */
-	public void ParseMove(Scanner input) {
-
-	}
-
-	/**
-	 * Analyses move command
-	 */
-	public void ParseRotate(Scanner input) {
-
-	}
-
-	public void ParsePass(Scanner input) {
-
-	}
-
 	
+
+	}
 }

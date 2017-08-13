@@ -26,12 +26,12 @@ public class Location {
 			if (y <= 9 && y >= 0) {
 				if (!((x == 0 && y == 0) || (x == 0 && y == 1) || (x == 1 && y == 0) || (x == 1 && y == 1)
 						|| (x == 8 && y == 8) || (x == 9 && y == 9) || (x == 8 && y == 9) || (x == 9 && y == 8))) {
-					this.y = y;
-					this.x = x;
 					isOnBoard = true;
 				}
 			}
 		}
+		this.y = y;
+		this.x = x;
 	}
 
 	/**

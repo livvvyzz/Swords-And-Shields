@@ -192,7 +192,55 @@ public class Tests {
 		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getState(), State.INACTIVE);
 		
 	}
-//-----------------------------------UNDO TESTS----------------------------------------------------------------
+	
+	@Test
+	public void testMoveUndo(){
+		Controller c = new Controller();
+		c.roundOne("create <a> <90>");
+		c.roundTwo("move <a> <up>");
+		c.roundOne("create <b> <90>");
+		c.roundTwo("move <b> <up>");
+		c.roundOne("create <c> <90>");
+		c.roundThree("move <c> <up>");
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(), 4);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('b').getLocation().getY(), 5);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('c').getLocation().getY(), 6);
+		c.undo();
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(), 5);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('b').getLocation().getY(), 6);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('c').getLocation().getY(), 7);
+	}
+	
+	@Test
+	public void testUndoPushTokenOffBoard(){
+		Controller c = new Controller();
+		c.roundOne("create <a> <90>");
+		c.roundTwo("move <a> <down>");
+		c.roundOne("create <b> <90>");
+		c.roundTwo("move <b> <down>");
+		c.roundTwo("move <b> <down>");
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(), 10);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getState(), State.DEAD);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('b').getLocation().getY(), 9);
+		c.undo();
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(), 9);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getState(), State.ALIVE);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('b').getLocation().getY(), 8);
+	}
+	
+	@Test
+	public void testMultUndos(){
+		Controller c = new Controller();
+		c.roundOne("create <a> <90>");
+		c.roundTwo("move <a> <down>");
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(),8);
+		c.undo();
+		c.undo();
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(),7);
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getState(), State.INACTIVE);
+	}
+
+//-----------------------------------CONTROLLER TESTS----------------------------------------------------------------
 
 	@Test
 	public void TestTrick(){

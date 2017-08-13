@@ -15,6 +15,7 @@ public class MoveCommand implements Command{
 	}
 
 	public void undo(){
+		System.out.println(t.getName());
 		cont.undoMove(t);
 	}
 

@@ -70,8 +70,7 @@ public class Controller implements Observer {
 		cmds.add("pass");
 		cmds.add("rotate");
 		cmds.add("move");
-
-		//trick();
+		cmds.add("undo");
 
 	}
 
@@ -125,7 +124,6 @@ public class Controller implements Observer {
 	public void undoCreate(Token t) {
 		board.removeToken(t);
 		t.setState(State.INACTIVE);
-		frame.drawBoard();
 	}
 
 	/**
@@ -156,8 +154,11 @@ public class Controller implements Observer {
 		c = Character.toLowerCase(c);
 		Token token = current.getPlayerMap().getMap().get(c);
 		// move token
-		if(!token.setLocation(dir)) return false;
-		if(!(board.moveToken(token, this))) return false;;
+		if (!token.setLocation(dir))
+			return false;
+		if (!(board.moveToken(token, this)))
+			return false;
+		;
 		commands.push(board.getStack());
 		frame.drawBoard();
 		return true;
@@ -167,9 +168,11 @@ public class Controller implements Observer {
 	 * Undos the most recent move, and its consequent moves
 	 */
 	public void undoMove(Token t) {
+		if (t.getState().equals(State.ALIVE))
+			board.removeToken(t);
 		t.setOldLocation();
-		board.moveToken(t);
-		frame.drawBoard();
+		board.addToken(t);
+
 	}
 
 	/**
@@ -243,9 +246,12 @@ public class Controller implements Observer {
 				success = roundTwo(input);
 			}
 		}
-		
-		if(current.equals(yellow)) current = green;
-		else current = yellow;
+
+		if (current.equals(yellow))
+			current = green;
+		else
+			current = yellow;
+		commands.clear();
 		trick();
 
 	}
@@ -262,6 +268,9 @@ public class Controller implements Observer {
 				return true;
 		} else if (cmd.equals("pass")) {
 			return true;
+		} else if (cmd.equals("undo")) {
+			if (undo())
+				return true;
 		}
 		return false;
 
@@ -279,6 +288,9 @@ public class Controller implements Observer {
 				return true;
 		} else if (cmd.equals("move")) {
 			if (move(input))
+				return true;
+		} else if (cmd.equals("undo")) {
+			if (undo())
 				return true;
 		}
 		return false;
@@ -300,6 +312,12 @@ public class Controller implements Observer {
 				return true;
 		} else if (cmd.equals("pass"))
 			return true;
+		else if (cmd.equals("undo"))
+
+		{
+			if (undo())
+				return true;
+		}
 		return false;
 	}
 
@@ -309,14 +327,9 @@ public class Controller implements Observer {
 		String cmd = s.next();
 		String toReturn;
 		if (cmds.contains(cmd)) {
-			if (cmd.equals("create"))
-				return toReturn = "create";
-			else if (cmd.equals("rotate"))
-				return toReturn = "rotate";
-			else if (cmd.equals("move"))
-				return toReturn = "move";
-			else if (cmd.equals("pass"))
-				return toReturn = "pass";
+			if (cmd.equals("create") || cmd.equals("move") || cmd.equals("pass") || cmd.equals("rotate")
+					|| cmd.equals("undo"))
+				return cmd;
 		}
 		// if none of the above, wrong input
 		return toReturn = "null";
@@ -435,16 +448,30 @@ public class Controller implements Observer {
 		return this.board;
 	}
 
-	public void undo() {
+	public boolean undo() {
+		if (commands.isEmpty())
+			return false;
 		Stack<Command> stack = commands.pop();
-		stack.pop().undo();
+		// temp - to reverse order
+		Stack<Command> temp = new Stack<Command>();
+		for (Command c : stack) {
+			temp.push(c);
+		}
+
+		// undo all the commands
+		for (Command c : temp) {
+			c.undo();
+		}
+		frame.drawBoard();
+		return true;
 	}
-	
+
 	/**
 	 * Returns the current player
-	 * @return		current
+	 * 
+	 * @return current
 	 */
-	public Player getCurrentPlayer(){
+	public Player getCurrentPlayer() {
 		return current;
 	}
 

@@ -109,14 +109,15 @@ public class Token {
 			this.location = new Location(this.location.getX() - 1, this.location.getY());
 		} else
 			return false;
+		setState();
 		return true;
 	}
 
 	public void setLocation(Location loc) {
 		if (location != null)
 			prevLoc.push(location);
-		this.state = State.ALIVE;
 		this.location = loc;
+		setState();
 	}
 
 	/**
@@ -145,6 +146,11 @@ public class Token {
 	 */
 	public void setState(State s) {
 		this.state = s;
+	}
+	
+	public void setState(){
+		if(location.getIsOnBoard()) state = State.ALIVE;
+		else state = State.DEAD;
 	}
 
 	/**
@@ -181,7 +187,18 @@ public class Token {
 
 	public void setOldLocation() {
 		location = prevLoc.pop();
+		setState();
 		recentMove.pop();
+
 	}
+	
+	/**
+	 * Returns the stack of previous locations
+	 * @return		prevLoc
+	 */
+	public Stack<Location> getPrevStack(){
+		return prevLoc;
+	}
+	
 
 }

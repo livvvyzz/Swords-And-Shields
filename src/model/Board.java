@@ -28,7 +28,7 @@ public class Board extends java.util.Observable {
 	/**
 	 * Constructs board
 	 */
-	public Board() {
+	public Board() { 
 		board = new Token[10][10];
 	}
 
@@ -67,15 +67,14 @@ public class Board extends java.util.Observable {
 	 * move token that is already on the board
 	 */
 	public boolean moveToken(Token token) {
-		//adds command to stack
-		if(add) stack.push(new MoveCommand(cont,token));
 		// checks if the piece is in the board
 		if(token.getPrevLoc() == null) return false;
-
+		//adds command to stack
+		if(add) stack.push(new MoveCommand(cont,token));
 		// check if the new location is on the board
 		if (!token.getLocation().getIsOnBoard()) {
 			board[token.getPrevLoc().getX()][token.getPrevLoc().getY()] = null;
-			token.setState(State.DEAD);
+			//token.setState(State.DEAD);
 		}
 		// add the token in its new location
 		else if (token.getLocation().getIsOnBoard()) {

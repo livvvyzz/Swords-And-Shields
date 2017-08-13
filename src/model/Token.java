@@ -18,6 +18,10 @@ public class Token {
 	// check what state the token is in (dead, alive or inactive if not yet been
 	// created by player)
 	private State state;
+	//holds the most recent move
+	private String recentMove;
+	//prev location
+	private Location prevLoc;
 	
 	private boolean upper;
 
@@ -86,6 +90,8 @@ public class Token {
 	 * @param loc
 	 */
 	public void setLocation(String dir) {
+		recentMove = dir;
+		prevLoc = location;
 		if (dir.equals("up")) {
 			this.location = new Location(this.location.getX(), this.location.getY() - 1);
 		} else if (dir.equals("down")) {
@@ -99,6 +105,7 @@ public class Token {
 	}
 
 	public void setLocation(Location loc) {
+		if(location != null) prevLoc = location;
 		this.state = State.ALIVE;
 		this.location = loc;
 	}
@@ -140,5 +147,23 @@ public class Token {
 		if(upper) c = Character.toUpperCase(c) ;
 		return c;
 	}
+	
+	/**
+	 * Returns the msot recent move
+	 * @return		recentmove
+	 */
+	public String getRecentMove(){
+		return recentMove;
+	}
+	
+	/**
+	 * Returns the old location
+	 * @return
+	 */
+	public Location getPrevLoc(){
+		return prevLoc;
+	}
+
+
 
 }

@@ -13,6 +13,7 @@ import model.Player;
 import model.State;
 import model.Token;
 import view.BoardView;
+import Command.CommandStack;
 
 public class Controller implements Observer {
 
@@ -37,6 +38,8 @@ public class Controller implements Observer {
 
 	Pattern p = Pattern.compile(re1 + re3 + re4);
 	private ArrayList<String> cmds;
+	
+	private CommandStack cmdStack;
 
 	/**
 	 * Acts as the informers between the model and the view.
@@ -46,7 +49,8 @@ public class Controller implements Observer {
 		yellow = new Player("yellow");
 		// set yellow as the first player
 		current = yellow;
-
+		//create commandstack
+		cmdStack = new CommandStack();
 		// create model board
 		board = new Board();
 		// make the squares that are not to be used have x in them
@@ -73,7 +77,7 @@ public class Controller implements Observer {
 	 * 
 	 * @param obj
 	 */
-	public boolean create(String input) {
+	public char create(String input) {
 		Scanner s = new Scanner(input);
 		Character c = 'y';
 		int dir;
@@ -106,7 +110,14 @@ public class Controller implements Observer {
 		// add token
 		board.addToken(token);
 		frame.drawBoard();
-		return true;
+		return c;
+	}
+	
+	public void undoCreate(char c){
+		Token token = current.getPlayerMap().getMap().get(c);
+		board.removeToken(token);
+		token.setState(State.INACTIVE);
+		frame.drawBoard();
 	}
 
 	/**

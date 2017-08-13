@@ -28,20 +28,30 @@ public class Board extends java.util.Observable {
 	 */
 	public void addToken(Token token) {
 		Location loc = token.getLocation();
+		// current token in this location, if any
+		Token current;
 
-		//check that no piece is on this spot already
-		if(board[loc.getX()][loc.getY()] != null){
-			throw new GameError("Attempting to place token in used spot");
+		// check that the piece is on the board
+		if (!token.getLocation().getIsOnBoard())
+			throw new GameError("Attempting to place a token on a location that is not on the board");
+		// check that no piece is on this spot already
+		if (board[loc.getX()][loc.getY()] != null) {
+			current = board[loc.getX()][loc.getY()];
+			String dir = token.getRecentMove();
+			if (dir.equals("up") || dir.equals("down") || dir.equals("right") || dir.equals("left")) {
+				current.setLocation(dir);
+				moveToken(current);
+			}
 		}
-		
-		board[loc.getX()][loc.getY()] = token;
-		
-		//check for reaction
 
-		//change token state
-		//token.setState(State.ALIVE);
+		board[loc.getX()][loc.getY()] = token;
+
+		// check for reaction
+
+		// change token state
+		// token.setState(State.ALIVE);
 		// notifies view that it needs to redraw the board
-		//notifyObservers(); 
+		// notifyObservers();
 	}
 
 	/**
@@ -49,26 +59,33 @@ public class Board extends java.util.Observable {
 	 */
 	public void moveToken(Token token) {
 		// checks if the piece is in the board
-		boolean moved = false;
+		boolean foundToken = false;
 
-		// finds piece
-		for (int i = 0; i < board.length; i++) {
-			for (int j = 0; j < board[i].length; j++) {
-				if (board[i][j] != null) {
-					if (board[i][j].equals(token)) { // THIS IS THE PART THAT
-														// CAUSES THE ERROR
-						board[i][j] = null;
-						moved = true;
-					}
-				}
+		if (board[token.getPrevLoc().getX()][token.getPrevLoc().getY()] != null) {
+			if (board[token.getPrevLoc().getX()][token.getPrevLoc().getY()].equals(token)) {
+				foundToken = true;
 			}
 		}
-		// if piece is not on board, throw error
-		if (!moved)
-			throw new GameError("Attempted to move token that is not on the Board");
 
+		// check if the new location is on the board
+		if (foundToken && !token.getLocation().getIsOnBoard()) {
+			board[token.getPrevLoc().getX()][token.getPrevLoc().getY()] = null;
+			token.setState(State.DEAD);
+		}
 		// add the token in its new location
-		addToken(token);
+		else if (foundToken && token.getLocation().getIsOnBoard()) {
+
+			board[token.getPrevLoc().getX()][token.getPrevLoc().getY()] = null;
+			addToken(token);
+		}
+	}
+	
+	/**
+	 * Removes the token from the board
+	 * @param t
+	 */
+	public void removeToken(Token t){
+		board[t.getLocation().getX()][t.getLocation().getY()] = null;
 	}
 
 	/**
@@ -77,6 +94,6 @@ public class Board extends java.util.Observable {
 	 * @return
 	 */
 	public Token[][] getBoard() {
-		return board; 
+		return board;
 	}
 }

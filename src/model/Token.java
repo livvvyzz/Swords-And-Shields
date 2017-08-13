@@ -24,6 +24,8 @@ public class Token {
 	private Stack<String> recentMove;
 	// prev location
 	private Stack<Location> prevLoc;
+	//rotate
+	private Stack<Integer> degree;
 
 	private boolean upper;
 
@@ -39,6 +41,7 @@ public class Token {
 		state = State.INACTIVE;
 		prevLoc = new Stack<Location>();
 		recentMove = new Stack<String>();
+		degree = new Stack<Integer>();
 		// first check name is between A and X4
 		if (!(name.equals('*') || name.equals('1') || name.equals('0'))) {
 			if (name > 'x' || name < 'a')
@@ -79,13 +82,45 @@ public class Token {
 
 		// store characters in array
 		codeArray[1][1] = temp[0];
-		codeArray[1][0] = temp[1]; // top
-		codeArray[2][1] = temp[2]; // right
-		codeArray[1][2] = temp[3]; // bottom
-		codeArray[0][1] = temp[4]; // left
+		codeArray[1][0] = temp[4]; // left
+		codeArray[2][1] = temp[1]; // top
+		codeArray[1][2] = temp[2]; // right
+		codeArray[0][1] = temp[3]; // bottom
 
 		return codeArray;
 
+	}
+	
+	/**
+	 * Returns the sword or shield in the top part of the token
+	 * @return
+	 */
+	public Character getTop(){
+		return code.toCharArray()[1];
+	}
+	
+	/**
+	 * Returns the sword or shield in the bottom part of the token
+	 * @return
+	 */
+	public Character getBotton(){
+		return code.toCharArray()[3];
+	}
+	
+	/**
+	 * Returns the sword or shield in the left part of the token
+	 * @return
+	 */
+	public Character getLeft(){
+		return code.toCharArray()[4];
+	}
+	
+	/**
+	 * Returns the sword or shield in the right part of the token
+	 * @return
+	 */
+	public Character getRight(){
+		return code.toCharArray()[2];
 	}
 
 	/**
@@ -147,10 +182,12 @@ public class Token {
 	public void setState(State s) {
 		this.state = s;
 	}
-	
-	public void setState(){
-		if(location.getIsOnBoard()) state = State.ALIVE;
-		else state = State.DEAD;
+
+	public void setState() {
+		if (location.getIsOnBoard())
+			state = State.ALIVE;
+		else
+			state = State.DEAD;
 	}
 
 	/**
@@ -191,14 +228,48 @@ public class Token {
 		recentMove.pop();
 
 	}
-	
+
 	/**
 	 * Returns the stack of previous locations
-	 * @return		prevLoc
+	 * 
+	 * @return prevLoc
 	 */
-	public Stack<Location> getPrevStack(){
+	public Stack<Location> getPrevStack() {
 		return prevLoc;
 	}
-	
+
+	/**
+	 * Rotates the token
+	 * 
+	 * @param deg
+	 *            degrees to rotate
+	 */
+	public void rotate(int deg) {
+		String line = code.substring(1);
+		line = line + line + line;
+
+		int start = 0;
+		int end = 4;
+		if (deg == 0) {
+			line = line.substring(start, end);
+		} else if (deg == 270) {
+			line = line.substring(start + 3, end + 3);
+		} else if (deg == 180) {
+			line = line.substring(start + 2, end + 2);
+		} else if (deg == 90) {
+			line = line.substring(start + 1, end + 1);
+		}
+		degree.push(deg);
+		code = code.toCharArray()[0] + line;
+	}
+
+	/**
+	 * Returns the code
+	 * 
+	 * @return code
+	 */
+	public String getCodeWord() {
+		return code;
+	}
 
 }

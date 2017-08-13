@@ -1,6 +1,7 @@
 package controller;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Scanner;
@@ -83,25 +84,15 @@ public class Controller implements Observer {
 	public boolean create(String input) {
 		Stack<Command> create = new Stack<Command>();
 
-		Scanner s = new Scanner(input);
-		Character c = 'y';
-		int dir;
+		String exe = parseExpression(input);
+		Character name = parseChar(input);
+		int num = parseNum(input);
 
-		if (s.next().equals("create")) {
-			String temp = s.next();
-			if (temp.toCharArray().length == 3) {
-				c = temp.toCharArray()[1];
-				temp = s.next();
-				temp = temp.substring(1, 3);
-				dir = Integer.parseInt(temp);
-			}
-		}
-
-		if (c.equals('y'))
+		if (name.equals('y') || !exe.equals("create") || !(num == 0 || num == 90 || num == 180 || num == 270))
 			return false;
 		// make it lowercase, because all map keys are lowercase
-		c = Character.toLowerCase(c);
-		Token token = current.getPlayerMap().getMap().get(c);
+		name = Character.toLowerCase(name);
+		Token token = current.getPlayerMap().getMap().get(name);
 		// check if already on board
 		if (token.getState().equals(State.ALIVE)) {
 			return false;
@@ -112,6 +103,8 @@ public class Controller implements Observer {
 			token.setLocation(new Location(2, 2));
 		else
 			token.setLocation(new Location(7, 7));
+		// rotate the token
+		token.rotate(num);
 		// add command to stack
 		create.push(new CreateCommand(this, token));
 		commands.push(create);
@@ -134,25 +127,18 @@ public class Controller implements Observer {
 	 */
 	public boolean move(String input) {
 		Stack<Command> move = new Stack<Command>();
-		Scanner s = new Scanner(input);
-		Character c = 'y';
-		String dir = "null";
 
-		if (s.next().equals("move")) {
-			String temp = s.next();
-			if (temp.toCharArray().length == 3) {
-				c = temp.toCharArray()[1];
-				dir = s.next();
-				dir = dir.substring(1, dir.length() - 1);
-			}
-		}
+		String exe = parseExpression(input);
+		Character name = parseChar(input);
+		String dir = parseDir(input);
 
-		if (c.equals('y'))
+		if (name.equals('y') || !exe.equals("move")
+				|| !(dir.equals("up") || dir.equals("down") || dir.equals("left") || dir.equals("right")))
 			return false;
 
 		// move the token
-		c = Character.toLowerCase(c);
-		Token token = current.getPlayerMap().getMap().get(c);
+		name = Character.toLowerCase(name);
+		Token token = current.getPlayerMap().getMap().get(name);
 		// move token
 		if (!token.setLocation(dir))
 			return false;
@@ -185,34 +171,21 @@ public class Controller implements Observer {
 	 *            how many degrees to rotate
 	 */
 	public boolean rotate(String input) {
-		Scanner s = new Scanner(input);
-		Character c = 'y';
-		int dir;
 
-		if (s.next().equals("create")) {
-			String temp = s.next();
-			if (temp.toCharArray().length == 1) {
-				c = temp.toCharArray()[0];
-				temp = s.next();
-				dir = Integer.parseInt(temp);
-			}
-		}
+		String exe = parseExpression(input);
+		Character name = parseChar(input);
+		int num = parseNum(input);
 
-		if (c.equals('y'))
-			throw new GameError("Not correct input");
-		Token token = current.getPlayerMap().getMap().get(c);
+		if (name.equals('y') || !exe.equals("rotate") || !(num == 0 || num == 90 || num == 180 || num == 270))
+			return false;
 
-		// rotate the token
-		// TODO: add the method
+		Token token = current.getPlayerMap().getMap().get(name);
+		token.rotate(num);
+		frame.drawBoard();
 		return true;
 	}
 
-	/**
-	 * Controlls the trick
-	 */
-	public void trick() {
-
-		// round one - may only create or pass
+	public void first() {
 		String output = (current.getName().toUpperCase() + "'S TURN: ADD LETTER TO BOARD OR PASS");
 		String input = frame.getOutput(output);
 		boolean success = roundOne(input);
@@ -222,31 +195,94 @@ public class Controller implements Observer {
 			input = frame.getOutput(output);
 			success = roundOne(input);
 		}
+	}
 
-		// round two - may only move or rotate
-		output = (current.getName().toUpperCase() + "'S TURN: MOVE OR ROTATE");
-		input = frame.getOutput(output);
-		success = roundTwo(input);
+	public void second(ArrayList<Token> array) {
+		boolean success;
+		String input;
+		String output;
+		ArrayList<Token> active = array;
+		int passCount = 0;
+		boolean tryAgain = false;
+		boolean first = true;
+		while (!active.isEmpty()) {
+			success = false;
+			while (!success) {
+				String s = "";
+				if (tryAgain)
+					s = "ENTERED WRONG COMMAND. TRY AGAIN: ";
+
+				output = (s + current.getName().toUpperCase() + "'S TURN: MOVE, ROTATE, PASS OR UNDO");
+				input = frame.getOutput(output);
+
+				tryAgain = true;
+
+				// check that the given input does not match one that has
+				// already been done
+				if (active.contains(current.getPlayerMap().getMap().get(parseChar(input)))
+						|| parseExpression(input).equals("pass") || parseExpression(input).equals(("undo"))) {
+					success = roundTwo(input);
+
+					if (success) {
+						if (first && parseExpression(input).equals("undo")) {
+							trick();
+							return;
+						}
+						if (parseExpression(input).equals("pass"))
+							passCount++;
+						Character c = parseChar(input);
+						Token t = current.getPlayerMap().getMap().get(c);
+						active.remove(t);
+						tryAgain = false;
+						first = false;
+					}
+				}
+			}
+			if (active.size() - passCount <= 0)
+				break;
+		}
+	}
+
+	public boolean third() {
+		String output = (current.getName().toUpperCase() + "'S TURN: CAN UNDO OR PASS");
+		String input = frame.getOutput(output);
+		boolean success = roundThree(input);
 		while (!success) {
 			output = ("ENTERED WRONG COMMAND. TRY AGAIN: " + current.getName().toUpperCase()
-					+ "'S TURN: MOVE OR ROTATE");
-			input = frame.getOutput(output);
-			success = roundTwo(input);
-		}
-
-		// round three & four - may move, rotate or pass
-		for (int i = 0; i < 2; i++) {
-			output = (current.getName().toUpperCase() + "'S TURN: PASS, MOVE OR ROTATE");
+					+ "'S TURN: CAN UNDO OR PASS");
 			input = frame.getOutput(output);
 			success = roundThree(input);
-			while (!success) {
-				output = ("ENTERED WRONG COMMAND. TRY AGAIN: " + current.getName().toUpperCase()
-						+ "'S TURN: PASS, MOVE OR ROTATE");
-				input = frame.getOutput(output);
-				success = roundTwo(input);
-			}
+			if (success)
+				if (parseExpression(input).equals("undo"))
+					return false;
 		}
+		return true;
 
+	}
+
+	/**
+	 * Controlls the trick
+	 */
+	public void trick() {
+		boolean success = false;
+		String output;
+		String input;
+		// round one - may only create or pass
+		first();
+		// count how many active token the player has
+		while (!success) {
+			ArrayList<Token> active = new ArrayList<Token>();
+			// add all active tokens to the array
+			for (Token t : current.getPlayerMap().getMap().values())
+				if (t.getState().equals(State.ALIVE))
+					active.add(t);
+
+			// round two - may move, rotate, pass, undo
+			second(active);
+			// round three - can choose undo
+			if (third())
+				success = true;
+		}
 		if (current.equals(yellow))
 			current = green;
 		else
@@ -289,27 +325,6 @@ public class Controller implements Observer {
 		} else if (cmd.equals("move")) {
 			if (move(input))
 				return true;
-		} else if (cmd.equals("undo")) {
-			if (undo())
-				return true;
-		}
-		return false;
-	}
-
-	/**
-	 * The third and fourth part of a players round - they can move, rotate or
-	 * pass.
-	 */
-	public boolean roundThree(String input) {
-
-		String cmd = parseExpression(input);
-		// must be create or pass
-		if (cmd.equals("rotate")) {
-			if (rotate(input))
-				return true;
-		} else if (cmd.equals("move")) {
-			if (move(input))
-				return true;
 		} else if (cmd.equals("pass"))
 			return true;
 		else if (cmd.equals("undo"))
@@ -321,18 +336,94 @@ public class Controller implements Observer {
 		return false;
 	}
 
-	public String parseExpression(String input) {
-		Scanner s = new Scanner(input);
+	public boolean roundThree(String input) {
+		String cmd = parseExpression(input);
+		// must be undo or pass
+		if (cmd.equals("pass"))
+			return true;
+		else if (cmd.equals("undo"))
 
-		String cmd = s.next();
-		String toReturn;
-		if (cmds.contains(cmd)) {
-			if (cmd.equals("create") || cmd.equals("move") || cmd.equals("pass") || cmd.equals("rotate")
-					|| cmd.equals("undo"))
-				return cmd;
+		{
+			if (undo())
+				return true;
 		}
-		// if none of the above, wrong input
-		return toReturn = "null";
+		return false;
+
+	}
+
+	public String parseExpression(String input) {
+		try {
+			Scanner s = new Scanner(input);
+
+			String cmd = s.next();
+			String toReturn;
+			if (cmds.contains(cmd)) {
+				if (cmd.equals("create") || cmd.equals("move") || cmd.equals("pass") || cmd.equals("rotate")
+						|| cmd.equals("undo"))
+					return cmd;
+			}
+			// if none of the above, wrong input
+			return toReturn = "null";
+		} catch (IndexOutOfBoundsException | NoSuchElementException e) {
+			return "null";
+		}
+	}
+
+	/**
+	 * Finds the char
+	 * 
+	 * @param input
+	 * @return letter
+	 */
+	public char parseChar(String input) {
+		try {
+			Scanner s = new Scanner(input);
+			// first command
+			s.next();
+			// get char
+			char c = Character.toLowerCase(s.next().charAt(1));
+			return c;
+		} catch (IndexOutOfBoundsException | NoSuchElementException e) {
+			return 'y';
+		}
+	}
+
+	/**
+	 * Finds the number for rotation
+	 * 
+	 * @param input
+	 * @return degrees to rotate
+	 */
+	public int parseNum(String input) {
+		try {
+			Scanner s = new Scanner(input);
+			// command
+			s.next();
+			// letter
+			s.next();
+			// number
+			String num = s.next();
+			int i = Integer.parseInt(num.substring(1, num.length() - 1));
+			return i;
+		} catch (IndexOutOfBoundsException | NoSuchElementException e) {
+			return 0;
+		}
+	}
+
+	public String parseDir(String input) {
+		try {
+			Scanner s = new Scanner(input);
+			// command
+			s.next();
+			// letter
+			s.next();
+			// direction
+			String dir = s.next();
+			dir = dir.substring(1, dir.length() - 1);
+			return dir;
+		} catch (IndexOutOfBoundsException | NoSuchElementException e) {
+			return "null";
+		}
 	}
 
 	@Override
@@ -438,6 +529,24 @@ public class Controller implements Observer {
 	 * @param t
 	 */
 	public void react(Token one, Token two) {
+		// first check where token two is in relation to token one
+
+		// on top
+		if (one.getLocation().getY() == two.getLocation().getY() + 1) {
+
+		}
+		// below
+		else if (one.getLocation().getY() == two.getLocation().getY() - 1) {
+
+		}
+		// left
+		else if (one.getLocation().getX() == two.getLocation().getX() + 1) {
+
+		}
+		// right
+		else if (one.getLocation().getX() == two.getLocation().getX() - 1) {
+
+		}
 
 	}
 

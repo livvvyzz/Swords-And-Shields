@@ -2,6 +2,7 @@ package testsuit;
 
 import static org.junit.Assert.*;
 
+import java.util.Scanner;
 
 import org.junit.Test;
 
@@ -123,13 +124,27 @@ public class Tests {
 		Character[][] array = t.getCode();
 		Character[][] myarray = new Character[3][3];
 		myarray[1][1] = 'a';
-		myarray[1][0]  = '.'; //top
-		myarray[2][1]  = '#'; //right
-		myarray[1][2]  = '.'; //bottom
-		myarray[0][1]  = '-'; //left
+		myarray[1][0]  = '-'; //top
+		myarray[2][1]  = '.'; //right
+		myarray[1][2]  = '#'; //bottom
+		myarray[0][1]  = '.'; //left
 		assertEquals(array,myarray);
 		
 	}
+	
+	@Test
+	public void testRotate(){
+		Token t = new Token('a', "a.#.-",false);
+		assertEquals(t.getCodeWord(), "a.#.-");
+		t.rotate(270);
+		assertEquals(t.getCodeWord(), "a-.#.");
+		t.rotate(180);
+		assertEquals(t.getCodeWord(), "a#.-.");
+		t.rotate(90);
+		assertEquals(t.getCodeWord(), "a.-.#");
+	
+	}
+
 	
 	/**
 	 * ---------------------------//PLAYER TESTS //------------------------------
@@ -201,7 +216,7 @@ public class Tests {
 		c.roundOne("create <b> <90>");
 		c.roundTwo("move <b> <up>");
 		c.roundOne("create <c> <90>");
-		c.roundThree("move <c> <up>");
+		c.roundTwo("move <c> <up>");
 		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getLocation().getY(), 4);
 		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('b').getLocation().getY(), 5);
 		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('c').getLocation().getY(), 6);
@@ -249,7 +264,6 @@ public class Tests {
 		assertEquals(c.roundTwo("move <b> <up>"),false);
 		assertEquals(c.roundTwo("move <a> <up>"),true);
 		assertEquals(c.roundTwo("create <b> <up>"),false);
-		assertEquals(c.roundThree("pass"),true);
-		assertEquals(c.roundThree("move <a> <up>"),true);
 	}
+
 }

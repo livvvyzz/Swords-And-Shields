@@ -5,6 +5,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.util.Stack;
 
 import model.Board;
 import model.GameError;
@@ -13,7 +14,9 @@ import model.Player;
 import model.State;
 import model.Token;
 import view.BoardView;
+import Command.Command;
 import Command.CommandStack;
+import Command.CreateCommand;
 
 public class Controller implements Observer {
 
@@ -38,8 +41,9 @@ public class Controller implements Observer {
 
 	Pattern p = Pattern.compile(re1 + re3 + re4);
 	private ArrayList<String> cmds;
-	
-	private CommandStack cmdStack;
+
+	// command stack
+	private Stack<Stack<Command>> commands;
 
 	/**
 	 * Acts as the informers between the model and the view.
@@ -49,8 +53,8 @@ public class Controller implements Observer {
 		yellow = new Player("yellow");
 		// set yellow as the first player
 		current = yellow;
-		//create commandstack
-		cmdStack = new CommandStack();
+		// create commandstack
+		commands = new Stack<Stack<Command>>();
 		// create model board
 		board = new Board();
 		// make the squares that are not to be used have x in them
@@ -67,7 +71,7 @@ public class Controller implements Observer {
 		cmds.add("rotate");
 		cmds.add("move");
 
-		roundOne();
+		//trick();
 
 	}
 
@@ -77,7 +81,9 @@ public class Controller implements Observer {
 	 * 
 	 * @param obj
 	 */
-	public char create(String input) {
+	public boolean create(String input) {
+		Stack<Command> create = new Stack<Command>();
+
 		Scanner s = new Scanner(input);
 		Character c = 'y';
 		int dir;
@@ -93,13 +99,13 @@ public class Controller implements Observer {
 		}
 
 		if (c.equals('y'))
-			throw new GameError("Not correct input");
+			return false;
 		// make it lowercase, because all map keys are lowercase
 		c = Character.toLowerCase(c);
 		Token token = current.getPlayerMap().getMap().get(c);
 		// check if already on board
 		if (token.getState().equals(State.ALIVE)) {
-			frame.getOutput(">>>Token already on Board! Cannot be created. Please try again");
+			return false;
 		}
 		// else put token on board
 		// set the location of the token
@@ -107,16 +113,18 @@ public class Controller implements Observer {
 			token.setLocation(new Location(2, 2));
 		else
 			token.setLocation(new Location(7, 7));
+		// add command to stack
+		create.push(new CreateCommand(this, token));
+		commands.push(create);
 		// add token
 		board.addToken(token);
 		frame.drawBoard();
-		return c;
+		return true;
 	}
-	
-	public void undoCreate(char c){
-		Token token = current.getPlayerMap().getMap().get(c);
-		board.removeToken(token);
-		token.setState(State.INACTIVE);
+
+	public void undoCreate(Token t) {
+		board.removeToken(t);
+		t.setState(State.INACTIVE);
 		frame.drawBoard();
 	}
 
@@ -126,7 +134,8 @@ public class Controller implements Observer {
 	 * 
 	 * @param obj
 	 */
-	public void move(String input) {
+	public boolean move(String input) {
+		Stack<Command> move = new Stack<Command>();
 		Scanner s = new Scanner(input);
 		Character c = 'y';
 		String dir = "null";
@@ -141,13 +150,25 @@ public class Controller implements Observer {
 		}
 
 		if (c.equals('y'))
-			throw new GameError("Not correct input");
+			return false;
 
 		// move the token
 		c = Character.toLowerCase(c);
 		Token token = current.getPlayerMap().getMap().get(c);
-		token.setLocation(dir);
-		board.moveToken(token);
+		// move token
+		if(!token.setLocation(dir)) return false;
+		if(!(board.moveToken(token, this))) return false;;
+		commands.push(board.getStack());
+		frame.drawBoard();
+		return true;
+	}
+
+	/**
+	 * Undos the most recent move, and its consequent moves
+	 */
+	public void undoMove(Token t) {
+		t.setOldLocation();
+		board.moveToken(t);
 		frame.drawBoard();
 	}
 
@@ -160,7 +181,7 @@ public class Controller implements Observer {
 	 * @param deg
 	 *            how many degrees to rotate
 	 */
-	public void rotate(String input) {
+	public boolean rotate(String input) {
 		Scanner s = new Scanner(input);
 		Character c = 'y';
 		int dir;
@@ -180,77 +201,106 @@ public class Controller implements Observer {
 
 		// rotate the token
 		// TODO: add the method
+		return true;
+	}
+
+	/**
+	 * Controlls the trick
+	 */
+	public void trick() {
+
+		// round one - may only create or pass
+		String output = (current.getName().toUpperCase() + "'S TURN: ADD LETTER TO BOARD OR PASS");
+		String input = frame.getOutput(output);
+		boolean success = roundOne(input);
+		while (!success) {
+			output = ("ENTERED WRONG COMMAND. TRY AGAIN: " + current.getName().toUpperCase()
+					+ "'S TURN: ADD LETTER TO BOARD OR PASS");
+			input = frame.getOutput(output);
+			success = roundOne(input);
+		}
+
+		// round two - may only move or rotate
+		output = (current.getName().toUpperCase() + "'S TURN: MOVE OR ROTATE");
+		input = frame.getOutput(output);
+		success = roundTwo(input);
+		while (!success) {
+			output = ("ENTERED WRONG COMMAND. TRY AGAIN: " + current.getName().toUpperCase()
+					+ "'S TURN: MOVE OR ROTATE");
+			input = frame.getOutput(output);
+			success = roundTwo(input);
+		}
+
+		// round three & four - may move, rotate or pass
+		for (int i = 0; i < 2; i++) {
+			output = (current.getName().toUpperCase() + "'S TURN: PASS, MOVE OR ROTATE");
+			input = frame.getOutput(output);
+			success = roundThree(input);
+			while (!success) {
+				output = ("ENTERED WRONG COMMAND. TRY AGAIN: " + current.getName().toUpperCase()
+						+ "'S TURN: PASS, MOVE OR ROTATE");
+				input = frame.getOutput(output);
+				success = roundTwo(input);
+			}
+		}
+		
+		if(current.equals(yellow)) current = green;
+		else current = yellow;
+		trick();
+
 	}
 
 	/**
 	 * The first part of a players turn - must create or pass
 	 */
-	public void roundOne() {
+	public boolean roundOne(String input) {
 
-		String output = (current.getName().toUpperCase() + "'S TURN: ADD LETTER TO BOARD OR PASS");
-		// receive input/cmd
-		String input = frame.getOutput(output);
 		String cmd = parseExpression(input);
 		// must be create or pass
 		if (cmd.equals("create")) {
-			create(input);
-			roundTwo();
+			if (create(input))
+				return true;
 		} else if (cmd.equals("pass")) {
-			roundTwo();
-		} else {
-			throw new GameError("Entered wrong command format");
+			return true;
 		}
+		return false;
 
 	}
 
 	/**
 	 * The second part of a players turn - must move or rotate
 	 */
-	public void roundTwo() {
-		String output = (current.getName().toUpperCase() + "'S TURN: MOVE OR ROTATE");
-		// receive input/cmd
-		String input = frame.getOutput(output);
+	public boolean roundTwo(String input) {
 
 		String cmd = parseExpression(input);
 		// must be create or pass
 		if (cmd.equals("rotate")) {
-			rotate(input);
-			roundThree(false);
+			if (rotate(input))
+				return true;
 		} else if (cmd.equals("move")) {
-			move(input);
-			roundThree(false);
-		} else {
-			throw new GameError("Entered wrong command format");
+			if (move(input))
+				return true;
 		}
+		return false;
 	}
 
 	/**
 	 * The third and fourth part of a players round - they can move, rotate or
 	 * pass.
 	 */
-	public void roundThree(boolean fourth) {
-		String output = (current.getName().toUpperCase() + "'S TURN: PASS, MOVE OR ROTATE");
-		// receive input/cmd
-		String input = frame.getOutput(output);
+	public boolean roundThree(String input) {
 
 		String cmd = parseExpression(input);
 		// must be create or pass
 		if (cmd.equals("rotate")) {
-			rotate(input);
+			if (rotate(input))
+				return true;
 		} else if (cmd.equals("move")) {
-			move(input);
-		} else if (!cmd.equals("pass")) {
-			throw new GameError("Entered wrong command format");
-		}
-		if (!fourth)
-			roundThree(true);
-		else {
-			if (current.equals(green))
-				current = yellow;
-			else
-				current = green;
-			roundOne();
-		}
+			if (move(input))
+				return true;
+		} else if (cmd.equals("pass"))
+			return true;
+		return false;
 	}
 
 	public String parseExpression(String input) {
@@ -344,33 +394,58 @@ public class Controller implements Observer {
 			Scanner scan = new Scanner(input);
 			String name = scan.next().toLowerCase();
 			char letter;
-			//make sure name is either <a> or a
-			if(name.toCharArray().length == 1) letter = name.toCharArray()[0];
-			else if(name.toCharArray().length == 3) letter = name.toCharArray()[1];
-			else throw new GameError("Not correct letter");
-			
-			//check if the given letter matches one of the potential reactions
+			// make sure name is either <a> or a
+			if (name.toCharArray().length == 1)
+				letter = name.toCharArray()[0];
+			else if (name.toCharArray().length == 3)
+				letter = name.toCharArray()[1];
+			else
+				throw new GameError("Not correct letter");
+
+			// check if the given letter matches one of the potential reactions
 			for (Token tok : reactions) {
-				if(tok.getName().equals(letter)){
+				if (tok.getName().equals(letter)) {
 					toReact = tok;
 				}
 			}
-			if(toReact.equals(null)) throw new GameError("Not a correct letter");
-			
-		}
-		else if (reactions.size() == 1){
+			if (toReact.equals(null))
+				throw new GameError("Not a correct letter");
+
+		} else if (reactions.size() == 1) {
 			toReact = reactions.get(0);
 		}
-		
-		if(!toReact.equals(null)) react(t,toReact);
+
+		if (!toReact.equals(null))
+			react(t, toReact);
+	}
+
+	/**
+	 * Performs the reaction with the given token
+	 * 
+	 * @param t
+	 */
+	public void react(Token one, Token two) {
+
+	}
+
+	/**
+	 * Returns the board
+	 */
+	public Board getBoard() {
+		return this.board;
+	}
+
+	public void undo() {
+		Stack<Command> stack = commands.pop();
+		stack.pop().undo();
 	}
 	
 	/**
-	 * Performs the reaction with the given token
-	 * @param t
+	 * Returns the current player
+	 * @return		current
 	 */
-	public void react (Token one,Token two){
-		
+	public Player getCurrentPlayer(){
+		return current;
 	}
 
 }

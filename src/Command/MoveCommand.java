@@ -3,18 +3,19 @@ package Command;
 import controller.Controller;
 import model.Token;
 
-public class CreateCommand implements Command{
+public class MoveCommand implements Command{
 	
 	private Controller cont;
 	private String input;
 	private Token t;
 	
-	public CreateCommand(Controller c, Token t){
+	public MoveCommand(Controller c, Token t){
 		this.cont = c;
 		this.t = t;
 	}
+
 	public void undo(){
-		cont.undoCreate(t);
+		cont.undoMove(t);
 	}
 
 }

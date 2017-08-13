@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Stack;
+
 /**
  * Represents a token
  * 
@@ -18,11 +20,11 @@ public class Token {
 	// check what state the token is in (dead, alive or inactive if not yet been
 	// created by player)
 	private State state;
-	//holds the most recent move
-	private String recentMove;
-	//prev location
-	private Location prevLoc;
-	
+	// holds the most recent move
+	private Stack<String> recentMove;
+	// prev location
+	private Stack<Location> prevLoc;
+
 	private boolean upper;
 
 	/**
@@ -35,6 +37,8 @@ public class Token {
 	 */
 	public Token(Character name, String code, boolean isUpper) {
 		state = State.INACTIVE;
+		prevLoc = new Stack<Location>();
+		recentMove = new Stack<String>();
 		// first check name is between A and X4
 		if (!(name.equals('*') || name.equals('1') || name.equals('0'))) {
 			if (name > 'x' || name < 'a')
@@ -89,9 +93,12 @@ public class Token {
 	 * 
 	 * @param loc
 	 */
-	public void setLocation(String dir) {
-		recentMove = dir;
-		prevLoc = location;
+	public boolean setLocation(String dir) {
+		recentMove.push(dir);
+		prevLoc.push(location);
+
+		if (this.location == null)
+			return false;
 		if (dir.equals("up")) {
 			this.location = new Location(this.location.getX(), this.location.getY() - 1);
 		} else if (dir.equals("down")) {
@@ -101,11 +108,13 @@ public class Token {
 		} else if (dir.equals("left")) {
 			this.location = new Location(this.location.getX() - 1, this.location.getY());
 		} else
-			throw new GameError("Didnt enter the correct direction. Must be up down right or left");
+			return false;
+		return true;
 	}
 
 	public void setLocation(Location loc) {
-		if(location != null) prevLoc = location;
+		if (location != null)
+			prevLoc.push(location);
 		this.state = State.ALIVE;
 		this.location = loc;
 	}
@@ -137,33 +146,42 @@ public class Token {
 	public void setState(State s) {
 		this.state = s;
 	}
-	
+
 	/**
 	 * Returns the name of the token
+	 * 
 	 * @return
 	 */
-	public Character getName(){
+	public Character getName() {
 		Character c = this.name;
-		if(upper) c = Character.toUpperCase(c) ;
+		if (upper)
+			c = Character.toUpperCase(c);
 		return c;
 	}
-	
+
 	/**
 	 * Returns the msot recent move
-	 * @return		recentmove
+	 * 
+	 * @return recentmove
 	 */
-	public String getRecentMove(){
-		return recentMove;
+	public String getRecentMove() {
+		return recentMove.peek();
 	}
-	
+
 	/**
 	 * Returns the old location
+	 * 
 	 * @return
 	 */
-	public Location getPrevLoc(){
-		return prevLoc;
+	public Location getPrevLoc() {
+		if (prevLoc.empty())
+			return null;
+		return prevLoc.peek();
 	}
 
-
+	public void setOldLocation() {
+		location = prevLoc.pop();
+		recentMove.pop();
+	}
 
 }

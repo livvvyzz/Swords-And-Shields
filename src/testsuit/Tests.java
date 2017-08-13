@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import controller.Controller;
 import model.Board;
 import model.GameError;
 import model.Location;
@@ -41,15 +42,10 @@ public class Tests {
 		assertEquals(board[2][1],t); 
 	}
 	
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testTokenNotOnBoardError() {
 		Board b = new Board();
-		try {
-			b.moveToken(new Token('a', "a....", false));
-		} catch (GameError e) {
-			fail(e.getMessage());
-		}
-
+		assertEquals(b.moveToken(new Token('a',"a....",false)), false);
 	}
 	
 	@Test
@@ -183,5 +179,29 @@ public class Tests {
 		Board b = new Board();
 		BoardView view = new BoardView(b, new PlayerMap(false), new PlayerMap(true));
 		view.drawBoard();
+	}
+	
+//-----------------------------------UNDO TESTS----------------------------------------------------------------
+	
+	@Test
+	public void testCreateUndo(){
+		Controller c = new Controller();
+		c.roundOne("create <a> <90>");
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getState(), State.ALIVE);
+		c.undo();
+		assertEquals(c.getCurrentPlayer().getPlayerMap().getMap().get('a').getState(), State.INACTIVE);
+		
+	}
+//-----------------------------------UNDO TESTS----------------------------------------------------------------
+
+	@Test
+	public void TestTrick(){
+		Controller c = new Controller();
+		assertEquals(c.roundOne("create <a> <90>"),true);
+		assertEquals(c.roundTwo("move <b> <up>"),false);
+		assertEquals(c.roundTwo("move <a> <up>"),true);
+		assertEquals(c.roundTwo("create <b> <up>"),false);
+		assertEquals(c.roundThree("pass"),true);
+		assertEquals(c.roundThree("move <a> <up>"),true);
 	}
 }

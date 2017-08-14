@@ -204,7 +204,7 @@ public class Controller {
 	/**
 	 * The first part of a trick - can only add or rotate
 	 */
-	public void first() {
+	public void firstTrick() {
 		String output = (current.getName().toUpperCase() + "'S TURN: ADD LETTER TO BOARD OR PASS");
 		String input = frame.getOutput(output);
 		boolean success = roundOne(input);
@@ -221,7 +221,7 @@ public class Controller {
 	 * 
 	 * @param array
 	 */
-	public void second(ArrayList<Token> array) {
+	public void secondTrick(ArrayList<Token> array) {
 		boolean success;
 		String input;
 		String output;
@@ -276,7 +276,7 @@ public class Controller {
 	 * 
 	 * @return
 	 */
-	public boolean third() {
+	public boolean thirdTrick() {
 		String output = (current.getName().toUpperCase() + "'S TURN: CAN UNDO OR PASS");
 		String input = frame.getOutput(output);
 		boolean success = roundThree(input);
@@ -301,7 +301,7 @@ public class Controller {
 		boolean success = false;
 
 		// round one - may only create or pass
-		first();
+		firstTrick();
 		// count how many active token the player has
 		while (!success) {
 			ArrayList<Token> active = new ArrayList<Token>();
@@ -311,9 +311,9 @@ public class Controller {
 					active.add(t);
 
 			// round two - may move, rotate, pass, undo
-			second(active);
+			secondTrick(active);
 			// round three - can choose undo
-			if (third())
+			if (thirdTrick())
 				success = true;
 		}
 		// change player
@@ -569,7 +569,7 @@ public class Controller {
 		for(Token i : invalid){
 			reactions.remove(i);
 		}
-		
+		 
 		//if there is more than one possible reaction, ask user which one to analyse first
 		if (reactions.size() > 1) {
 

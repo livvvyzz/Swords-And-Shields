@@ -1,0 +1,11 @@
+
+
+Swords and Shields
+
+	1. To run the code, run the Main method in the controller package
+	2. Command syntax as follow
+			create <letter> <0/90/180/270>
+			rotate <letter> <0/90/180/270>
+			move <letter> <up/down/right/left>
+			pass
+			undo

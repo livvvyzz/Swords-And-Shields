@@ -21,7 +21,7 @@ public class Tests {
 	// TESTS----------------------------------------------------------------
 	/**
 	 * ---------------------------//BOARD TESTS //------------------------------
-	 */
+	 */ 
 	@Test
 	public void testGetBoard() {
 		Board b = new Board();

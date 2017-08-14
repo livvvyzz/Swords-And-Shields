@@ -16,7 +16,7 @@ public class Location {
 	/**
 	 * Creates the location
 	 * 
-	 * @param x
+	 * @param x 
 	 * @param y
 	 */
 	public Location(int x, int y) {

@@ -3,19 +3,19 @@ package Command;
 import controller.Controller;
 import model.Token;
 
-public class MoveCommand implements Command{
+public class RotateCommand implements Command{
 	
 	private Controller cont;
 	private String input;
 	private Token t;
 	
-	public MoveCommand(Controller c, Token t){
+	public RotateCommand(Controller c, Token t){
 		this.cont = c;
 		this.t = t;
 	}
 
 	public void undo(){
-		cont.undoMove(t);
+		cont.undoRotate(t);
 	}
 
 } 

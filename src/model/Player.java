@@ -33,7 +33,7 @@ public class Player {
 		boolean upper;
 		if(name.equals("green")) upper = true;
 		else upper = false;
-		
+		 
 		//create player map
 		tokenSet = new PlayerMap(upper);
 	}

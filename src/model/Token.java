@@ -28,7 +28,7 @@ public class Token {
 	private Stack<Integer> degree;
 
 	private boolean upper;
-
+ 
 	/**
 	 * Creates the token
 	 * 
@@ -82,11 +82,10 @@ public class Token {
 
 		// store characters in array
 		codeArray[1][1] = temp[0];
-		codeArray[1][0] = temp[4]; // left
-		codeArray[2][1] = temp[1]; // top
-		codeArray[1][2] = temp[2]; // right
-		codeArray[0][1] = temp[3]; // bottom
-
+		codeArray[0][1] = temp[1]; // left
+		codeArray[1][0] = temp[2]; // top
+		codeArray[2][1] = temp[3]; // right
+		codeArray[1][2] = temp[4]; // bottom
 		return codeArray;
 
 	}
@@ -96,15 +95,15 @@ public class Token {
 	 * @return
 	 */
 	public Character getTop(){
-		return code.toCharArray()[1];
+		return code.toCharArray()[2];
 	}
 	
 	/**
 	 * Returns the sword or shield in the bottom part of the token
 	 * @return
 	 */
-	public Character getBotton(){
-		return code.toCharArray()[3];
+	public Character getBottom(){
+		return code.toCharArray()[4];
 	}
 	
 	/**
@@ -112,15 +111,15 @@ public class Token {
 	 * @return
 	 */
 	public Character getLeft(){
-		return code.toCharArray()[4];
+		return code.toCharArray()[1];
 	}
 	
-	/**
+	/** 
 	 * Returns the sword or shield in the right part of the token
 	 * @return
 	 */
 	public Character getRight(){
-		return code.toCharArray()[2];
+		return code.toCharArray()[3];
 	}
 
 	/**
@@ -148,6 +147,10 @@ public class Token {
 		return true;
 	}
 
+	/**
+	 * Sets the location of the token on the board
+	 * @param loc
+	 */
 	public void setLocation(Location loc) {
 		if (location != null)
 			prevLoc.push(location);
@@ -208,6 +211,7 @@ public class Token {
 	 * @return recentmove
 	 */
 	public String getRecentMove() {
+		if(recentMove.isEmpty()) return "null";
 		return recentMove.peek();
 	}
 
@@ -252,15 +256,15 @@ public class Token {
 		int end = 4;
 		if (deg == 0) {
 			line = line.substring(start, end);
-		} else if (deg == 270) {
+		} else if (deg == 90) {
 			line = line.substring(start + 3, end + 3);
 		} else if (deg == 180) {
 			line = line.substring(start + 2, end + 2);
-		} else if (deg == 90) {
+		} else if (deg == 270) {
 			line = line.substring(start + 1, end + 1);
 		}
 		degree.push(deg);
-		code = code.toCharArray()[0] + line;
+		this.code = code.toCharArray()[0] + line;
 	}
 
 	/**
@@ -270,6 +274,15 @@ public class Token {
 	 */
 	public String getCodeWord() {
 		return code;
+	}
+	
+	/**
+	 * Returns the last rotate direction
+	 * @return degree
+	 */
+	public int getDirection(){
+		if(degree.isEmpty()) return 0;
+		return degree.pop();
 	}
 
 }

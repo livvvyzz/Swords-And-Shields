@@ -28,7 +28,7 @@ public class Board extends java.util.Observable {
 	/**
 	 * Constructs board
 	 */
-	public Board() { 
+	public Board() {  
 		board = new Token[10][10];
 	}
 
@@ -38,7 +38,7 @@ public class Board extends java.util.Observable {
 	 * @param token
 	 *            token to be added
 	 */
-	public void addToken(Token token) {
+	public boolean addToken(Token token) {
 		Location loc = token.getLocation();
 		// current token in this location, if any
 		Token current;
@@ -46,6 +46,7 @@ public class Board extends java.util.Observable {
 		// check that no piece is on this spot already
 		if (board[loc.getX()][loc.getY()] != null) {
 			current = board[loc.getX()][loc.getY()];
+			if(token.getRecentMove().equals("null")) return false;
 			String dir = token.getRecentMove();
 			if (dir.equals("up") || dir.equals("down") || dir.equals("right") || dir.equals("left")) {
 				current.setLocation(dir);
@@ -54,20 +55,14 @@ public class Board extends java.util.Observable {
 		}
 
 		board[loc.getX()][loc.getY()] = token;
-
-		// check for reaction
-
-		// change token state
-		// token.setState(State.ALIVE);
-		// notifies view that it needs to redraw the board
-		// notifyObservers();
+		return true;
 	}
 
 	/**
 	 * move token that is already on the board
 	 */
 	public boolean moveToken(Token token) {
-		// checks if the piece is in the board
+		// checks if the piece is in the board 
 		if(token.getPrevLoc() == null) return false;
 		//adds command to stack
 		if(add) stack.push(new MoveCommand(cont,token));

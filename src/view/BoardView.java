@@ -55,22 +55,22 @@ public class BoardView {
 						line.append("   ");
 					} else {
 						Token t = b[col][row];
-						Character[][] c = t.getCode();
+						Character[][] c = t.getCode(); 
 						// iterate through name per row
 						for (int j = 0; j < 3; j++) {
 							if (c[j][level] == null) {
 								line.append(" ");
 							} else {
-								if (c[level][j].equals('.')) {
+								if (c[j][level].equals('.')) {
 									line.append(" ");
 								} else {
-									line.append(c[level][j]);
+									line.append(c[j][level]);
 								}
 							}
 						}
 					}
 					line.append("|");
-				}
+				} 
 				line.append("      ");
 				// display pieces that are not on board
 				Token[][] t = yellow.getTokensArray();
@@ -91,13 +91,13 @@ public class BoardView {
 							// check if there is a char in that spot
 							Character[][] code = token.getCode();
 							for (int j = 0; j < 3; j++) {
-								if (code[level][j] == null) {
+								if (code[j][level] == null) {
 									line.append(" ");
 								} else {
-									if (code[level][j].equals('.')) {
+									if (code[j][level].equals('.')) {
 										line.append(" ");
 									} else {
-										line.append(code[level][j]);
+										line.append(code[j][level]);
 									}
 								}
 							}

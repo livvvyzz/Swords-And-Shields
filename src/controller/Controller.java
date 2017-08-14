@@ -2,10 +2,8 @@ package controller;
 
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
-import java.util.Observable;
-import java.util.Observer;
+
 import java.util.Scanner;
-import java.util.regex.Pattern;
 import java.util.Stack;
 
 import model.Board;
@@ -16,17 +14,17 @@ import model.State;
 import model.Token;
 import view.BoardView;
 import Command.Command;
-import Command.CommandStack;
 import Command.CreateCommand;
+import Command.RotateCommand;
 
-public class Controller implements Observer {
+public class Controller {
 
 	// player who has the current turn
 	private Player current;
 
 	// both players
 	private Player green;
-	private Player yellow;
+	private Player yellow; 
 
 	// Board
 	private Board board;
@@ -34,13 +32,6 @@ public class Controller implements Observer {
 	// Board View - outputs the board
 	private BoardView frame;
 
-	// patterns to use as the delimiter for the scanner
-	String re1 = "(<)"; // Any Single Character 1
-	String re2 = ".*?"; // Non-greedy match on filler
-	String re3 = "(>)"; // Any Single Character 2
-	String re4 = "( )"; // Any Single Character 1
-
-	Pattern p = Pattern.compile(re1 + re3 + re4);
 	private ArrayList<String> cmds;
 
 	// command stack
@@ -109,11 +100,18 @@ public class Controller implements Observer {
 		create.push(new CreateCommand(this, token));
 		commands.push(create);
 		// add token
-		board.addToken(token);
+		if(!board.addToken(token)) return false;
 		frame.drawBoard();
+		checkReaction(token);
 		return true;
 	}
 
+	/**
+	 * Undo's the last create command
+	 * 
+	 * @param t
+	 *            token to undo
+	 */
 	public void undoCreate(Token t) {
 		board.removeToken(t);
 		t.setState(State.INACTIVE);
@@ -126,7 +124,6 @@ public class Controller implements Observer {
 	 * @param obj
 	 */
 	public boolean move(String input) {
-		Stack<Command> move = new Stack<Command>();
 
 		String exe = parseExpression(input);
 		Character name = parseChar(input);
@@ -147,6 +144,8 @@ public class Controller implements Observer {
 		;
 		commands.push(board.getStack());
 		frame.drawBoard();
+		if (token.getLocation().getIsOnBoard())
+			checkReaction(token);
 		return true;
 	}
 
@@ -158,19 +157,17 @@ public class Controller implements Observer {
 			board.removeToken(t);
 		t.setOldLocation();
 		board.addToken(t);
-
 	}
 
 	/**
 	 * Receives info from parse class and rotates the given letter by the given
 	 * degrees.
 	 * 
-	 * @param c
-	 *            token to rotate
-	 * @param deg
-	 *            how many degrees to rotate
+	 * @param input
+	 *            expression to parse
 	 */
 	public boolean rotate(String input) {
+		Stack<Command> rotate = new Stack<Command>();
 
 		String exe = parseExpression(input);
 		Character name = parseChar(input);
@@ -181,10 +178,32 @@ public class Controller implements Observer {
 
 		Token token = current.getPlayerMap().getMap().get(name);
 		token.rotate(num);
+		// add command to stack
+		rotate.push(new RotateCommand(this, token));
+		commands.push(rotate);
 		frame.drawBoard();
 		return true;
 	}
 
+	/**
+	 * Undo's a rotate command
+	 * 
+	 * @param t
+	 *            the token to rotate
+	 */
+	public void undoRotate(Token t) {
+		int dir = t.getDirection();
+		if (dir == 90)
+			dir = 270;
+		else if (dir == 270)
+			dir = 270;
+		t.rotate(dir);
+		frame.drawBoard();
+	}
+
+	/**
+	 * The first part of a trick - can only add or rotate
+	 */
 	public void first() {
 		String output = (current.getName().toUpperCase() + "'S TURN: ADD LETTER TO BOARD OR PASS");
 		String input = frame.getOutput(output);
@@ -197,6 +216,11 @@ public class Controller implements Observer {
 		}
 	}
 
+	/**
+	 * The second part of a trick - can undo, pass, rotate or move
+	 * 
+	 * @param array
+	 */
 	public void second(ArrayList<Token> array) {
 		boolean success;
 		String input;
@@ -205,8 +229,12 @@ public class Controller implements Observer {
 		int passCount = 0;
 		boolean tryAgain = false;
 		boolean first = true;
+
+		// keep going until all the pieces have been moved, rotated or passed
 		while (!active.isEmpty()) {
 			success = false;
+			// checks that the input is correct - will ask the player to try
+			// again if its not
 			while (!success) {
 				String s = "";
 				if (tryAgain)
@@ -243,10 +271,16 @@ public class Controller implements Observer {
 		}
 	}
 
+	/**
+	 * The third part of a round - can undo or pass
+	 * 
+	 * @return
+	 */
 	public boolean third() {
 		String output = (current.getName().toUpperCase() + "'S TURN: CAN UNDO OR PASS");
 		String input = frame.getOutput(output);
 		boolean success = roundThree(input);
+		// ensures the input is correct
 		while (!success) {
 			output = ("ENTERED WRONG COMMAND. TRY AGAIN: " + current.getName().toUpperCase()
 					+ "'S TURN: CAN UNDO OR PASS");
@@ -265,8 +299,7 @@ public class Controller implements Observer {
 	 */
 	public void trick() {
 		boolean success = false;
-		String output;
-		String input;
+
 		// round one - may only create or pass
 		first();
 		// count how many active token the player has
@@ -283,17 +316,24 @@ public class Controller implements Observer {
 			if (third())
 				success = true;
 		}
+		// change player
 		if (current.equals(yellow))
 			current = green;
 		else
 			current = yellow;
+		// clear the commands - so the next player cant undo the current players
+		// turn
 		commands.clear();
+		// start again
 		trick();
 
 	}
 
 	/**
 	 * The first part of a players turn - must create or pass
+	 * 
+	 * @param input
+	 *            command
 	 */
 	public boolean roundOne(String input) {
 
@@ -336,6 +376,12 @@ public class Controller implements Observer {
 		return false;
 	}
 
+	/**
+	 * controls the third round
+	 * 
+	 * @param input
+	 * @return true if pass or undo is parsed successfully
+	 */
 	public boolean roundThree(String input) {
 		String cmd = parseExpression(input);
 		// must be undo or pass
@@ -351,6 +397,12 @@ public class Controller implements Observer {
 
 	}
 
+	/**
+	 * Gets the first word (the command) from the players input
+	 * 
+	 * @param input
+	 * @return the command
+	 */
 	public String parseExpression(String input) {
 		try {
 			Scanner s = new Scanner(input);
@@ -410,6 +462,12 @@ public class Controller implements Observer {
 		}
 	}
 
+	/**
+	 * Gets the direction from the users input - if the command is move
+	 * 
+	 * @param input
+	 * @return direction
+	 */
 	public String parseDir(String input) {
 		try {
 			Scanner s = new Scanner(input);
@@ -426,14 +484,8 @@ public class Controller implements Observer {
 		}
 	}
 
-	@Override
-	public void update(Observable arg0, Object arg1) {
-		frame.drawBoard();
-
-	}
-
 	/**
-	 * Fills the invalid sqaures
+	 * Fills the invalid sqaures - the ones behind the faces
 	 */
 	public void makeSqaures() {
 		Token t = new Token('*', "*....", false);
@@ -462,7 +514,6 @@ public class Controller implements Observer {
 	 * Checks if a moved token reacts with another - or multiple tokens
 	 */
 	public void checkReaction(Token t) {
-
 		Token[][] array = board.getBoard();
 
 		ArrayList<Token> reactions = new ArrayList<Token>();
@@ -472,29 +523,63 @@ public class Controller implements Observer {
 		Location loc = t.getLocation();
 		// check if there is a token next to it
 		// on top
-		if (array[loc.getX()][loc.getY() - 1] != null) {
-			reactions.add(array[loc.getX()][loc.getY() - 1]);
-		}
-		// below
-		else if (array[loc.getX()][loc.getY() + 1] != null) {
-			reactions.add(array[loc.getX()][loc.getY() + 1]);
-		}
-		// right
-		else if (array[loc.getX() + 1][loc.getY()] != null) {
-			reactions.add(array[loc.getX() + 1][loc.getY()]);
-		}
-		// left
-		else if (array[loc.getX() - 1][loc.getY()] != null) {
-			reactions.add(array[loc.getX() - 1][loc.getY()]);
+		if (loc.getY() != 9 && !(loc.getY() == 7 && loc.getX() == 9)) {
+			if (array[loc.getX()][loc.getY() + 1] != null) {
+				// check if either has a sword
+				if (t.getBottom().equals('-') || array[loc.getX()][loc.getY() + 1].getTop().equals('-')) {
+					reactions.add(array[loc.getX()][loc.getY() + 1]);
+				}
+			}
 		}
 
+		// below
+		if (loc.getY() != 0 && !(loc.getY() == 2 && loc.getX() == 0)) {
+			if (array[loc.getX()][loc.getY() - 1] != null) {
+				// check if either has a sword
+				if (t.getTop().equals('-') || array[loc.getX()][loc.getY() - 1].getBottom().equals('-')) {
+					reactions.add(array[loc.getX()][loc.getY() - 1]);
+				}
+			}
+		}
+		// token one is right of token two
+		if (loc.getX() != 0 && !(loc.getY() == 0 && loc.getX() == 2)) {
+			if (array[loc.getX() - 1][loc.getY()] != null) {
+				// check if either has a sword
+				if (t.getLeft().equals('-') || array[loc.getX() - 1][loc.getY()].getRight().equals('-')) {
+					reactions.add(array[loc.getX() - 1][loc.getY()]);
+				}
+			}
+		}
+		// token one is left of token 2
+		if (loc.getX() != 9 && !(loc.getY() == 9 && loc.getX() == 7)) {
+
+			if (array[loc.getX() + 1][loc.getY()] != null) {
+				if (t.getRight().equals('-') || array[loc.getX() + 1][loc.getY()].getLeft().equals('-')) {
+
+					reactions.add(array[loc.getX() + 1][loc.getY()]);
+				}
+			}
+		}
+		//make sure none of them are invalid squares
+		ArrayList<Token> invalid = new ArrayList<Token>();
+		for(Token r : reactions){
+			if(r.getState().equals(State.DEAD)) invalid.add(t);
+		}
+		
+		for(Token i : invalid){
+			reactions.remove(i);
+		}
+		
+		//if there is more than one possible reaction, ask user which one to analyse first
 		if (reactions.size() > 1) {
+
 			StringBuilder s = new StringBuilder("WHICH TOKEN DO YOU WANT TO REACT WITH: ");
 			for (Token tok : reactions) {
-				s.append(tok.getName() + ",");
+				s.append(tok.getName() + " ,");
 			}
-			s.substring(0, s.length() - 1);
-			String input = frame.getOutput(s.toString());
+			String line = s.toString();
+			line = line.substring(0, line.length() - 1);
+			String input = frame.getOutput(line);
 			Scanner scan = new Scanner(input);
 			String name = scan.next().toLowerCase();
 			char letter;
@@ -519,35 +604,127 @@ public class Controller implements Observer {
 			toReact = reactions.get(0);
 		}
 
-		if (!toReact.equals(null))
+		if (toReact != null)
 			react(t, toReact);
+
 	}
 
 	/**
-	 * Performs the reaction with the given token
-	 * 
-	 * @param t
+	 * Performs the reaction with the two tokens
+	 * @param one first token
+	 * @param two second token
 	 */
 	public void react(Token one, Token two) {
+		String dir = "";
 		// first check where token two is in relation to token one
 
 		// on top
 		if (one.getLocation().getY() == two.getLocation().getY() + 1) {
+			dir = "up";
+			char charOne = one.getTop();
+			char charTwo = two.getBottom();
+			analyseReaction(one, charOne, two, charTwo, dir);
 
 		}
 		// below
 		else if (one.getLocation().getY() == two.getLocation().getY() - 1) {
-
+			dir = "down";
+			char charOne = one.getBottom();
+			char charTwo = two.getTop();
+			analyseReaction(one, charOne, two, charTwo, dir);
 		}
 		// left
 		else if (one.getLocation().getX() == two.getLocation().getX() + 1) {
-
+			dir = "left";
+			char charOne = one.getLeft();
+			char charTwo = two.getRight();
+			analyseReaction(one, charOne, two, charTwo, dir);
 		}
 		// right
 		else if (one.getLocation().getX() == two.getLocation().getX() - 1) {
-
+			dir = "right";
+			char charOne = one.getRight();
+			char charTwo = two.getLeft();
+			analyseReaction(one, charOne, two, charTwo, dir);
 		}
+		frame.drawBoard();
+		if (one.getState().equals(State.ALIVE))
+			checkReaction(one);
+		if (two.getState().equals(State.ALIVE))
+			checkReaction(two);
 
+	}
+
+	/**
+	 * Checks all four cases of the reaction
+	 * 
+	 * @param one
+	 * @param charOne
+	 * @param two
+	 * @param charTwo
+	 */
+	public void analyseReaction(Token one, char charOne, Token two, char charTwo, String dir) {
+		String alternateDir = "";
+		if (dir.equals("up"))
+			alternateDir = "down";
+		else if (dir.equals("down"))
+			alternateDir = "up";
+		else if (dir.equals("left"))
+			alternateDir = "right";
+		else if (dir.equals("right"))
+			alternateDir = "left";
+
+		// sword against sword
+		if (charOne == '-' && charTwo == '-') {
+			removeToken(one);
+			removeToken(two);
+		}
+		// sword against nothing
+		else if (charOne == '.' && charTwo == '-') {
+			removeToken(one);
+		} else if (charOne == '-' && charTwo == '.') {
+			removeToken(two);
+		}
+		// sword against shield
+		else if (charOne == '#' && charTwo == '-') {
+			pushTokenBack(two, dir);
+		} else if (charOne == '-' && charTwo == '#') {
+			pushTokenBack(one, alternateDir);
+		}
+	}
+
+	/**
+	 * Removes a token from the board and sets state to null
+	 * 
+	 * @param t
+	 */
+	public void removeToken(Token t) {
+		if (t.getName().equals('1')) {
+			board.removeToken(t);
+			frame.drawBoard();
+			System.out.println("YELLOW WINS");
+			System.exit(0);
+		} else if (t.getName().equals('0')) {
+			board.removeToken(t);
+			frame.drawBoard();
+			System.out.println("GREEN WINS");
+			System.exit(0);
+		}
+		// check if the token is 0 or 1
+		board.removeToken(t);
+		t.setState(State.DEAD);
+	}
+
+	/**
+	 * Pushes a token back, in direction opposite from the shield
+	 * 
+	 * @param t
+	 * @param dir
+	 */
+	public void pushTokenBack(Token t, String dir) {
+		board.removeToken(t);
+		t.setLocation(dir);
+		board.addToken(t);
 	}
 
 	/**
@@ -557,6 +734,11 @@ public class Controller implements Observer {
 		return this.board;
 	}
 
+	/**
+	 * Calls the appropriate undo function
+	 * 
+	 * @return true if undo works
+	 */
 	public boolean undo() {
 		if (commands.isEmpty())
 			return false;
